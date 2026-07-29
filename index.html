@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LOML ♥️</title>
+  <style>
+    :root {
+      --bg1: #ffe3ec;
+      --bg2: #ffc2d4;
+      --card: #ffffff;
+      --ink: #4a2836;
+      --accent: #ff4d6d;
+      --accent-dark: #c9184a;
+      --free: #ffb3c6;
+      --marked: #ff758f;
+      --marked-ink: #ffffff;
+      --line: #ff8fab;
+      --shadow: rgba(201, 24, 74, 0.25);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, var(--bg1), var(--bg2));
+      color: var(--ink);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px 48px;
+    }
+
+    h1 {
+      font-size: clamp(2.4rem, 8vw, 4rem);
+      margin: 8px 0 4px;
+      text-align: center;
+      color: var(--accent-dark);
+      text-shadow: 0 2px 0 rgba(255, 255, 255, 0.6);
+      letter-spacing: 1px;
+    }
+
+    .subtitle {
+      margin: 0 0 20px;
+      text-align: center;
+      opacity: 0.75;
+      font-size: 1rem;
+    }
+
+    .board {
+      background: var(--card);
+      border-radius: 20px;
+      padding: 16px;
+      box-shadow: 0 12px 30px var(--shadow);
+    }
+
+    .header-row, .grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(52px, 1fr));
+      gap: 8px;
+    }
+
+    .header-row {
+      margin-bottom: 8px;
+    }
+
+    .header-cell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: clamp(1.4rem, 5vw, 2rem);
+      color: var(--card);
+      background: linear-gradient(160deg, var(--accent), var(--accent-dark));
+      border-radius: 12px;
+      height: 46px;
+      user-select: none;
+    }
+
+    .cell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      aspect-ratio: 1 / 1;
+      font-size: clamp(1.1rem, 4.5vw, 1.6rem);
+      font-weight: 700;
+      background: #fff0f4;
+      border: 2px solid #ffd6e0;
+      border-radius: 12px;
+      transition: transform 0.12s ease, background 0.2s ease, color 0.2s ease;
+      user-select: none;
+    }
+
+    .cell.free {
+      background: var(--free);
+      color: var(--accent-dark);
+      font-size: clamp(1.2rem, 4vw, 1.5rem);
+    }
+
+    .cell.marked {
+      background: linear-gradient(160deg, var(--marked), var(--accent-dark));
+      color: var(--marked-ink);
+      border-color: var(--accent-dark);
+      transform: scale(1.04);
+      box-shadow: 0 4px 10px var(--shadow);
+    }
+
+    .cell.just-hit {
+      animation: pop 0.4s ease;
+    }
+
+    @keyframes pop {
+      0% { transform: scale(0.7); }
+      60% { transform: scale(1.18); }
+      100% { transform: scale(1.04); }
+    }
+
+    .controls {
+      margin-top: 22px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      width: min(100%, 420px);
+    }
+
+    .input-row {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+    }
+
+    input[type="number"] {
+      flex: 1;
+      padding: 12px 14px;
+      font-size: 1.1rem;
+      border: 2px solid var(--accent);
+      border-radius: 12px;
+      outline: none;
+      background: #fff;
+      color: var(--ink);
+    }
+
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button { margin: 0; }
+
+    button {
+      font-family: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 18px;
+      font-size: 1rem;
+      background: linear-gradient(160deg, var(--accent), var(--accent-dark));
+      color: #fff;
+      transition: transform 0.1s ease, opacity 0.2s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(1px); }
+    button.secondary {
+      background: #fff;
+      color: var(--accent-dark);
+      border: 2px solid var(--accent);
+    }
+
+    .status {
+      text-align: center;
+      font-weight: 600;
+      min-height: 1.4em;
+    }
+
+    .status.error { color: var(--accent-dark); }
+
+    .lines-tracker {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+    }
+
+    .hearts { letter-spacing: 2px; font-size: 1.2rem; }
+
+    .called-list {
+      width: min(100%, 420px);
+      margin-top: 6px;
+      text-align: center;
+      font-size: 0.9rem;
+      opacity: 0.8;
+      word-spacing: 4px;
+      line-height: 1.6;
+    }
+
+    /* Win overlay */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(120, 10, 40, 0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 20;
+      padding: 20px;
+    }
+    .overlay.show { display: flex; }
+
+    .win-card {
+      background: #fff;
+      border-radius: 24px;
+      padding: 36px 30px;
+      text-align: center;
+      max-width: 420px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+      animation: pop 0.4s ease;
+    }
+    .win-card h2 {
+      margin: 0 0 10px;
+      font-size: 2.2rem;
+      color: var(--accent-dark);
+    }
+    .win-card p { margin: 0 0 22px; font-size: 1.1rem; }
+
+    /* Confetti */
+    .confetti {
+      position: fixed;
+      top: -10px;
+      width: 10px;
+      height: 16px;
+      z-index: 15;
+      pointer-events: none;
+      opacity: 0.9;
+    }
+    @keyframes fall {
+      to { transform: translateY(105vh) rotate(720deg); opacity: 0.9; }
+    }
+
+    footer {
+      margin-top: 26px;
+      font-size: 0.85rem;
+      opacity: 0.7;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h1>LOML ♥️</h1>
+  <p class="subtitle">A little bingo game — get 5 lines to win my heart</p>
+
+  <div class="board">
+    <div class="header-row" id="header-row"></div>
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <div class="controls">
+    <div class="lines-tracker">
+      Lines: <span id="lines-count">0</span> / 5
+      <span class="hearts" id="hearts"></span>
+    </div>
+
+    <div class="input-row">
+      <input type="number" id="number-input" placeholder="Enter a number (1–75)" min="1" max="75" />
+      <button id="call-btn">Mark</button>
+    </div>
+    <div class="status" id="status">Enter a called number to mark it off.</div>
+
+    <button class="secondary" id="new-game-btn">New Card 🔄</button>
+    <div class="called-list" id="called-list"></div>
+  </div>
+
+  <footer>
+    Standard 75-ball bingo · Columns B (1–15) · I (16–30) · N (31–45) · G (46–60) · O (61–75)<br />
+    Center is a FREE space. A line = any full row, column, or diagonal.
+  </footer>
+
+  <div class="overlay" id="overlay">
+    <div class="win-card">
+      <h2>BINGO! 🎉</h2>
+      <p>You completed 5 lines. You win my heart ♥️</p>
+      <button id="play-again-btn">Play Again</button>
+    </div>
+  </div>
+
+  <script>
+    // ----- Bingo setup -----
+    // Column number ranges for standard 75-ball bingo.
+    const COLUMN_RANGES = [
+      [1, 15],   // B
+      [16, 30],  // I
+      [31, 45],  // N
+      [46, 60],  // G
+      [61, 75],  // O
+    ];
+    const LETTERS = ["B", "I", "N", "G", "O"];
+    const FREE_INDEX = 12; // center cell (row 2, col 2) in a flat 5x5 grid
+
+    let cells = [];        // 25 cell objects { value, marked, free, el }
+    let numberToIndex = {}; // maps a called number -> its cell index
+    let calledNumbers = []; // numbers the player has entered
+    let completedLines = 0;
+    let gameOver = false;
+
+    const gridEl = document.getElementById("grid");
+    const headerEl = document.getElementById("header-row");
+    const statusEl = document.getElementById("status");
+    const linesCountEl = document.getElementById("lines-count");
+    const heartsEl = document.getElementById("hearts");
+    const calledListEl = document.getElementById("called-list");
+    const inputEl = document.getElementById("number-input");
+    const overlayEl = document.getElementById("overlay");
+
+    // Pick `count` unique numbers within [min, max].
+    function pickUnique(min, max, count) {
+      const pool = [];
+      for (let n = min; n <= max; n++) pool.push(n);
+      // Fisher–Yates shuffle
+      for (let i = pool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [pool[i], pool[j]] = [pool[j], pool[i]];
+      }
+      return pool.slice(0, count);
+    }
+
+    function buildCard() {
+      cells = [];
+      numberToIndex = {};
+      calledNumbers = [];
+      completedLines = 0;
+      gameOver = false;
+
+      // Generate 5 numbers per column.
+      const columns = COLUMN_RANGES.map(([min, max]) => pickUnique(min, max, 5));
+
+      // Fill grid row by row (index = row * 5 + col).
+      for (let row = 0; row < 5; row++) {
+        for (let col = 0; col < 5; col++) {
+          const index = row * 5 + col;
+          if (index === FREE_INDEX) {
+            cells.push({ value: "FREE", marked: true, free: true });
+          } else {
+            const value = columns[col][row];
+            numberToIndex[value] = index;
+            cells.push({ value, marked: false, free: false });
+          }
+        }
+      }
+      render();
+      updateStatus("Enter a called number to mark it off.", false);
+      statusEl.classList.remove("error");
+      overlayEl.classList.remove("show");
+    }
+
+    function render() {
+      headerEl.innerHTML = "";
+      LETTERS.forEach((l) => {
+        const h = document.createElement("div");
+        h.className = "header-cell";
+        h.textContent = l;
+        headerEl.appendChild(h);
+      });
+
+      gridEl.innerHTML = "";
+      cells.forEach((cell) => {
+        const el = document.createElement("div");
+        el.className = "cell";
+        if (cell.free) el.classList.add("free");
+        if (cell.marked) el.classList.add("marked");
+        el.textContent = cell.value;
+        cell.el = el;
+        gridEl.appendChild(el);
+      });
+      updateLinesUI();
+      updateCalledList();
+    }
+
+    // All 12 winning lines: 5 rows, 5 columns, 2 diagonals.
+    function getLines() {
+      const lines = [];
+      for (let r = 0; r < 5; r++) lines.push([0,1,2,3,4].map((c) => r * 5 + c));
+      for (let c = 0; c < 5; c++) lines.push([0,1,2,3,4].map((r) => r * 5 + c));
+      lines.push([0, 6, 12, 18, 24]);  // main diagonal
+      lines.push([4, 8, 12, 16, 20]);  // anti-diagonal
+      return lines;
+    }
+
+    function countCompletedLines() {
+      const lines = getLines();
+      let count = 0;
+      lines.forEach((line) => {
+        if (line.every((i) => cells[i].marked)) count++;
+      });
+      return count;
+    }
+
+    function callNumber() {
+      if (gameOver) return;
+      const raw = inputEl.value.trim();
+      if (raw === "") {
+        updateStatus("Type a number first.", true);
+        return;
+      }
+      const num = parseInt(raw, 10);
+      if (isNaN(num) || num < 1 || num > 75) {
+        updateStatus("Please enter a number between 1 and 75.", true);
+        return;
+      }
+      if (calledNumbers.includes(num)) {
+        updateStatus(num + " was already called.", true);
+        inputEl.value = "";
+        return;
+      }
+
+      calledNumbers.push(num);
+
+      if (num in numberToIndex) {
+        const index = numberToIndex[num];
+        cells[index].marked = true;
+        const el = cells[index].el;
+        el.classList.add("marked", "just-hit");
+        setTimeout(() => el.classList.remove("just-hit"), 400);
+        updateStatus("✓ " + num + " is on your card!", false);
+      } else {
+        updateStatus(num + " isn't on your card.", false);
+      }
+
+      inputEl.value = "";
+      inputEl.focus();
+
+      completedLines = countCompletedLines();
+      updateLinesUI();
+      updateCalledList();
+
+      if (completedLines >= 5) {
+        winGame();
+      }
+    }
+
+    function updateStatus(msg, isError) {
+      statusEl.textContent = msg;
+      statusEl.classList.toggle("error", !!isError);
+    }
+
+    function updateLinesUI() {
+      completedLines = countCompletedLines();
+      linesCountEl.textContent = completedLines;
+      let hearts = "";
+      for (let i = 0; i < 5; i++) hearts += i < completedLines ? "♥" : "♡";
+      heartsEl.textContent = hearts;
+    }
+
+    function updateCalledList() {
+      if (calledNumbers.length === 0) {
+        calledListEl.textContent = "";
+        return;
+      }
+      calledListEl.textContent = "Called: " + calledNumbers.join(" ");
+    }
+
+    function winGame() {
+      gameOver = true;
+      updateStatus("🎉 BINGO! You got 5 lines!", false);
+      overlayEl.classList.add("show");
+      launchConfetti();
+    }
+
+    function launchConfetti() {
+      const colors = ["#ff4d6d", "#c9184a", "#ff8fab", "#ffb3c6", "#fff0f4"];
+      for (let i = 0; i < 80; i++) {
+        const conf = document.createElement("div");
+        conf.className = "confetti";
+        conf.style.left = Math.random() * 100 + "vw";
+        conf.style.background = colors[Math.floor(Math.random() * colors.length)];
+        conf.style.animation = "fall " + (2 + Math.random() * 2) + "s linear " + (Math.random() * 0.6) + "s forwards";
+        conf.style.transform = "rotate(" + Math.random() * 360 + "deg)";
+        document.body.appendChild(conf);
+        setTimeout(() => conf.remove(), 5000);
+      }
+    }
+
+    // ----- Events -----
+    document.getElementById("call-btn").addEventListener("click", callNumber);
+    inputEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") callNumber();
+    });
+    document.getElementById("new-game-btn").addEventListener("click", buildCard);
+    document.getElementById("play-again-btn").addEventListener("click", buildCard);
+
+    // Build a fresh randomized card on load (and on every refresh).
+    buildCard();
+  </script>
+</body>
+</html>
