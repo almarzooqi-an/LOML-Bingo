@@ -50,30 +50,10 @@
     }
 
     .board {
-      position: relative;
       background: var(--card);
       border-radius: 20px;
       padding: 16px;
       box-shadow: 0 12px 30px var(--shadow);
-    }
-
-    /* Centered flash overlay for the 69 easter egg. */
-    .board-flash {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: clamp(3.5rem, 22vw, 7rem);
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.15s ease;
-      text-shadow: 0 4px 16px rgba(201, 24, 74, 0.45);
-      z-index: 5;
-    }
-    .board-flash.show {
-      opacity: 1;
-      animation: pop 0.4s ease;
     }
 
     .header-row, .grid {
@@ -278,7 +258,6 @@
   <div class="board">
     <div class="header-row" id="header-row"></div>
     <div class="grid" id="grid"></div>
-    <div class="board-flash" id="board-flash"></div>
   </div>
 
   <div class="controls">
@@ -338,7 +317,6 @@
     const calledListEl = document.getElementById("called-list");
     const inputEl = document.getElementById("number-input");
     const overlayEl = document.getElementById("overlay");
-    const boardFlashEl = document.getElementById("board-flash");
 
     // Pick `count` unique numbers within [min, max].
     function pickUnique(min, max, count) {
@@ -456,9 +434,6 @@
         updateStatus(num + " isn't on your card.", false);
       }
 
-      // Easter egg: flash 🍆🍑 in the center of the board when 69 is entered.
-      if (num === 69) flash69();
-
       inputEl.value = "";
       inputEl.focus();
 
@@ -483,7 +458,6 @@
         setTimeout(() => cell.el.classList.remove("just-hit"), 400);
         if (!calledNumbers.includes(cell.value)) calledNumbers.push(cell.value);
         updateStatus("✓ " + cell.value + " marked!", false);
-        if (cell.value === 69) flash69();
       } else {
         cell.marked = false;
         cell.el.classList.remove("marked");
@@ -497,13 +471,6 @@
       updateCalledList();
 
       if (completedLines >= 5) winGame();
-    }
-
-    // Easter egg: flash 🍆🍑 in the center of the board for one second.
-    function flash69() {
-      boardFlashEl.textContent = "🍆🍑";
-      boardFlashEl.classList.add("show");
-      setTimeout(() => boardFlashEl.classList.remove("show"), 1000);
     }
 
     function updateStatus(msg, isError) {
