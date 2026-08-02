@@ -278,7 +278,7 @@
 
   <div class="overlay" id="overlay">
     <div class="win-card">
-      <h2>Edeeeeelo 69!!! 🎉</h2>
+      <h2>Edeeeelo ;) ;) 🎉</h2>
       <p>You completed 5 lines. You win my heart ♥️</p>
       <button id="play-again-btn">Play Again</button>
     </div>
@@ -426,6 +426,16 @@
         updateStatus(num + " isn't on your card.", false);
       }
 
+      // Easter egg: flash 🍆🍑 for one second whenever 69 is entered.
+      if (num === 69) {
+        const prevMsg = statusEl.textContent;
+        const prevErr = statusEl.classList.contains("error");
+        updateStatus("🍆🍑", false);
+        setTimeout(() => {
+          if (!gameOver) updateStatus(prevMsg, prevErr);
+        }, 1000);
+      }
+
       inputEl.value = "";
       inputEl.focus();
 
@@ -461,7 +471,7 @@
 
     function winGame() {
       gameOver = true;
-      updateStatus("🎉 Edeeeeelo 69!!! You got 5 lines!", false);
+      updateStatus("🎉 Edeeeelo ;) ;) You got 5 lines!", false);
       overlayEl.classList.add("show");
       launchConfetti();
     }
