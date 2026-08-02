@@ -113,6 +113,12 @@
       user-select: none;
     }
 
+    .cell:not(.free) { cursor: pointer; }
+    .cell:not(.free):not(.marked):hover {
+      background: #ffe0e9;
+      border-color: var(--accent);
+    }
+
     .cell.free {
       background: var(--free);
       color: var(--accent-dark);
@@ -385,13 +391,15 @@
       });
 
       gridEl.innerHTML = "";
-      cells.forEach((cell) => {
+      cells.forEach((cell, index) => {
         const el = document.createElement("div");
         el.className = "cell";
         if (cell.free) el.classList.add("free");
         if (cell.marked) el.classList.add("marked");
         el.textContent = cell.value;
         cell.el = el;
+        // Let players mark/unmark a number by clicking the cell directly.
+        if (!cell.free) el.addEventListener("click", () => toggleCell(index));
         gridEl.appendChild(el);
       });
       updateLinesUI();
@@ -449,11 +457,7 @@
       }
 
       // Easter egg: flash 🍆🍑 in the center of the board when 69 is entered.
-      if (num === 69) {
-        boardFlashEl.textContent = "🍆🍑";
-        boardFlashEl.classList.add("show");
-        setTimeout(() => boardFlashEl.classList.remove("show"), 1000);
-      }
+      if (num === 69) flash69();
 
       inputEl.value = "";
       inputEl.focus();
@@ -465,6 +469,41 @@
       if (completedLines >= 5) {
         winGame();
       }
+    }
+
+    // Mark or unmark a cell when it's clicked directly.
+    function toggleCell(index) {
+      if (gameOver) return;
+      const cell = cells[index];
+      if (cell.free) return;
+
+      if (!cell.marked) {
+        cell.marked = true;
+        cell.el.classList.add("marked", "just-hit");
+        setTimeout(() => cell.el.classList.remove("just-hit"), 400);
+        if (!calledNumbers.includes(cell.value)) calledNumbers.push(cell.value);
+        updateStatus("✓ " + cell.value + " marked!", false);
+        if (cell.value === 69) flash69();
+      } else {
+        cell.marked = false;
+        cell.el.classList.remove("marked");
+        const i = calledNumbers.indexOf(cell.value);
+        if (i > -1) calledNumbers.splice(i, 1);
+        updateStatus(cell.value + " unmarked.", false);
+      }
+
+      completedLines = countCompletedLines();
+      updateLinesUI();
+      updateCalledList();
+
+      if (completedLines >= 5) winGame();
+    }
+
+    // Easter egg: flash 🍆🍑 in the center of the board for one second.
+    function flash69() {
+      boardFlashEl.textContent = "🍆🍑";
+      boardFlashEl.classList.add("show");
+      setTimeout(() => boardFlashEl.classList.remove("show"), 1000);
     }
 
     function updateStatus(msg, isError) {
