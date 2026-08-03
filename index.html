@@ -243,6 +243,42 @@
       to { transform: translateY(105vh) rotate(720deg); opacity: 0.9; }
     }
 
+    /* "Six seven" easter egg overlay (triggered by 67). */
+    .six-seven {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      pointer-events: none;
+    }
+    .six-seven.show {
+      display: flex;
+      animation: pop 0.4s ease;
+    }
+    .six-seven .hands {
+      display: flex;
+      gap: clamp(24px, 12vw, 80px);
+      font-size: clamp(4rem, 26vw, 10rem);
+      filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.3));
+    }
+    .six-seven .num {
+      font-size: clamp(2.5rem, 15vw, 6rem);
+      font-weight: 800;
+      letter-spacing: 6px;
+      color: var(--accent-dark);
+      text-shadow: 0 4px 16px rgba(255, 255, 255, 0.6);
+    }
+    .six-seven .left  { animation: weigh 0.45s ease-in-out infinite alternate; }
+    .six-seven .right { animation: weigh 0.45s ease-in-out infinite alternate-reverse; }
+    @keyframes weigh {
+      from { transform: translateY(-26px) rotate(-8deg); }
+      to   { transform: translateY(26px) rotate(8deg); }
+    }
+
     footer {
       margin-top: 26px;
       font-size: 0.85rem;
@@ -290,6 +326,11 @@
     </div>
   </div>
 
+  <div class="six-seven" id="six-seven">
+    <div class="hands"><span class="left">🫴</span><span class="right">🫴</span></div>
+    <div class="num">6&nbsp;&nbsp;7</div>
+  </div>
+
   <script>
     // ----- Bingo setup -----
     // Column number ranges for standard 75-ball bingo.
@@ -317,6 +358,8 @@
     const calledListEl = document.getElementById("called-list");
     const inputEl = document.getElementById("number-input");
     const overlayEl = document.getElementById("overlay");
+    const sixSevenEl = document.getElementById("six-seven");
+    let sixSevenTimer = null;
 
     // Pick `count` unique numbers within [min, max].
     function pickUnique(min, max, count) {
@@ -434,6 +477,9 @@
         updateStatus(num + " isn't on your card.", false);
       }
 
+      // Easter egg: the "six seven" hand gesture pops up when 67 is entered.
+      if (num === 67) flashSixSeven();
+
       inputEl.value = "";
       inputEl.focus();
 
@@ -458,6 +504,7 @@
         setTimeout(() => cell.el.classList.remove("just-hit"), 400);
         if (!calledNumbers.includes(cell.value)) calledNumbers.push(cell.value);
         updateStatus("✓ " + cell.value + " marked!", false);
+        if (cell.value === 67) flashSixSeven();
       } else {
         cell.marked = false;
         cell.el.classList.remove("marked");
@@ -471,6 +518,13 @@
       updateCalledList();
 
       if (completedLines >= 5) winGame();
+    }
+
+    // Easter egg: pop the "six seven" hand gesture onto the screen for 2 seconds.
+    function flashSixSeven() {
+      sixSevenEl.classList.add("show");
+      if (sixSevenTimer) clearTimeout(sixSevenTimer);
+      sixSevenTimer = setTimeout(() => sixSevenEl.classList.remove("show"), 2000);
     }
 
     function updateStatus(msg, isError) {
